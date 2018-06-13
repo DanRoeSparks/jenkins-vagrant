@@ -1,0 +1,17 @@
+---
+- name: "Install Jenkins"
+  hosts: "jenkins"
+  become: yes
+  become_method: sudo
+  vars:
+    java_packages:
+        - java-1.8.0-openjdk
+    firewall_allowed_tcp_ports:
+        - "22"
+        - "8080"
+  roles:
+    - geerlingguy.firewall
+    - geerlingguy.java
+    - geerlingguy.jenkins
+
+  
