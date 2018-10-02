@@ -5,13 +5,52 @@
   become_method: sudo
   vars:
     java_packages:
-        - java-1.8.0-openjdk
+      - java-1.8.0-openjdk
     firewall_allowed_tcp_ports:
-        - "22"
-        - "8080"
+      - "22"
+      - "8080"
+    jenkins_plugins:
+      - git
+      - gradle
+      - pipeline
+
   roles:
     - geerlingguy.firewall
     - geerlingguy.java
     - geerlingguy.jenkins
+
+- name: "Add packages"
+  hosts: "jenkins"
+  become: yes
+  become_method: sudo
+  tasks:
+    - name: "Install with yum"
+      yum:
+        name: "{{item}}"
+        state: latest
+      with_items: 
+        - "git"
+        - "unzip"
+
+- name: "Install Gradle"
+  hosts: "jenkins"
+  become: yes
+  become_method: sudo
+  vars:
+    gradle_version: "4.10.2"
+    gradle_zipfile: "gradle-{{gradle_version}}-bin.zip"
+    gradle_folder:  "gradle-{{gradle_version}}"
+  tasks:
+    - name: Download Gradle {{gradle_version}}
+      get_url: dest=/tmp url=https://services.gradle.org/distributions/{{gradle_zipfile}}
+
+    - name: Extract Gradle
+      shell: unzip "/tmp/{{gradle_zipfile}}" -d /usr/local/share/ creates=/usr/local/share/{{gradle_folder}}
+
+    - name: Add Gradle executable symlink to path
+      shell: ln -s /usr/local/share/{{gradle_folder}}/bin/gradle /usr/local/bin/gradle creates=/usr/local/bin/gradle
+
+
+
 
   
