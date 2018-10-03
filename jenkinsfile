@@ -4,9 +4,11 @@
 
 def gradleCmd = '/usr/local/bin/gradle'
 node {
+    // mando
     stage('Checkout Wrappers') {
       checkout([$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'CleanBeforeCheckout']], submoduleCfg: [], userRemoteConfigs: [[url: 'https://github.com/DanRoeSparks/gradle-wrappers.git']]])
     }
+    // mando
     stage('Clean Core') {
         sh "/usr/bin/rm -rf ./core-*"
     }
@@ -39,6 +41,7 @@ if (env.DO_DEPLOY == "YES" && env.MANUAL_APPROVE_DEPLOY == "YES") {
   println('Skipping Manual Approval')
 }
 node {
+  // should check here for existence of scripts if using agents
   if (env.DO_DEPLOY == "YES") { 
     stage('Deploy') {
       // Run the gradle script
