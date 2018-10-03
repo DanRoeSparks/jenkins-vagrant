@@ -1,0 +1,35 @@
+// WIP PoC Jenkinsfile for pipeline script
+// Vars required by multiple stages should be declared outside nodes
+// because we need multiple nodes to support manual stages
+
+def gradleCmd = '/usr/local/bin/gradle'
+node {
+    stage('CheckoutWrappers') {
+      checkout([$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'CleanBeforeCheckout']], submoduleCfg: [], userRemoteConfigs: [[url: 'https://github.com/DanRoeSparks/gradle-wrappers.git']]])
+    }
+    stage('CleanCore') {
+        sh "/usr/bin/rm -rf ./core-*"
+    }
+    stage('Checkout') {
+      // Run the gradle script
+      sh "$gradleCmd main -b checkout.gradle"
+      sh "$gradleCmd main -b core-checkout/checkout-core.gradle"
+    }
+    stage('Build') {
+      // Run the gradle script
+      sh "$gradleCmd main -b build.gradle"
+      sh "$gradleCmd main -b core-build/build-core.gradle"
+    }
+}
+// Manual stages outside nodes mean agents aren't held up waiting for approval
+// Obviously this means potentially different agents/workspaces
+stage('Manual Approval') {
+    input "Trigger Deployment?"
+}
+node {
+    stage('Deploy') {
+      // Run the gradle script
+      sh "$gradleCmd main -b deploy.gradle"
+      sh "$gradleCmd main -b core-deploy/deploy-core.gradle"
+    }
+}
