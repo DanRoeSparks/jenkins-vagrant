@@ -4,11 +4,9 @@
 
 def gradleCmd = '/usr/local/bin/gradle'
 node {
-    // mando
     stage('Checkout Wrappers') {
       checkout([$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'CleanBeforeCheckout']], submoduleCfg: [], userRemoteConfigs: [[url: 'https://github.com/DanRoeSparks/gradle-wrappers.git']]])
     }
-    // mando
     stage('Clean Core') {
         sh "/usr/bin/rm -rf ./core-*"
     }
@@ -33,15 +31,16 @@ node {
 }
 // Manual stages outside nodes mean agents aren't held up waiting for approval
 // Obviously this means potentially different agents/workspaces
+// To trigger, use a call like:
+// curl -X POST -d "json={proceed: 'Proceed'}" -d "proceed=Proceed" 'http[s]://[jenkins-url]/job/[job-name]/[build-number]/input/[input-id]/submit'
 if (env.DO_DEPLOY == "YES" && env.MANUAL_APPROVE_DEPLOY == "YES") { 
   stage('Manual Approval') {
-      input "Trigger Deployment?"
+      input(id: 'UserInput', message: "Trigger Deployment?")
   }
 } else {
   println('Skipping Manual Approval')
 }
 node {
-  // should check here for existence of scripts if using agents
   if (env.DO_DEPLOY == "YES") { 
     stage('Deploy') {
       // Run the gradle script
